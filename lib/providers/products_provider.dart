@@ -120,9 +120,36 @@ class ProductsProvider with ChangeNotifier {
   //   _showFavoritesOnly = false;
   //   notifyListeners();
   // }
-  void addProduct() {
+  void addProduct(Product product) {
     //_items.add(value);
+
+    final newProduct = Product(
+    title: product.title,
+      description: product.description,
+      imageUrl: product.imageUrl,
+      price: product.price,
+      id: DateTime.now().toString(),
+    );
+
+    _items.add(newProduct);
     // notify the listeners about the change
+    notifyListeners();
+  }
+
+  void updateProduct(String id, Product newProduct){
+   final prodIndex= _items.indexWhere((element) => element.id==id);
+   if(prodIndex>=0)
+     {
+       _items[prodIndex]=newProduct;
+       notifyListeners();
+     }
+   else{
+     print('...');
+   }
+  }
+
+  void deleteProduct(String id){
+    _items.removeWhere((element) => element.id==id);
     notifyListeners();
   }
 }
