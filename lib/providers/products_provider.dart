@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:shoppers/models/http_exception.dart';
 import './product.dart';
 import 'package:http/http.dart' as http;
 
@@ -160,10 +161,17 @@ class ProductsProvider with ChangeNotifier {
 
 
 
-  void updateProduct(String id, Product newProduct){
+  Future<void> updateProduct(String id, Product newProduct) async{
    final prodIndex= _items.indexWhere((element) => element.id==id);
    if(prodIndex>=0)
      {
+       final url = Uri.parse('https://shoppers-c54d9-default-rtdb.firebaseio.com/products/$id.json');
+       await http.patch(url, body: json.encode({
+         'title': newProduct.title,
+         'description': newProduct.description,
+         'imageUrl':newProduct.imageUrl,
+         'price':newProduct.price,
+       }));
        _items[prodIndex]=newProduct;
        notifyListeners();
      }
@@ -172,9 +180,22 @@ class ProductsProvider with ChangeNotifier {
    }
   }
 
-  void deleteProduct(String id){
-    _items.removeWhere((element) => element.id==id);
+  Future<void> deleteProduct(String id) async{
+    final url = Uri.parse('https://shoppers-c54d9-default-rtdb.firebaseio.com/products/$id.json');
+    final existingProductIndex = _items.indexWhere((element) => element.id==id);
+    var existingProduct = _items[existingProductIndex];
+   //optimistic updating pattern
+    _items.removeAt(existingProductIndex);
     notifyListeners();
+    final response = await http.delete(url);
+          if(response.statusCode>=400)
+            {
+              _items.insert(existingProductIndex, existingProduct);
+              notifyListeners();
+              throw HttpException("Could not delete product.");
+            }
+            existingProduct = null;
+       // re-add the product if it fails
   }
 
   Future<void> fetchAndSetProducts() async{
