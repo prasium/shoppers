@@ -44,8 +44,8 @@ class AuthScreen extends StatelessWidget {
                         margin: EdgeInsets.only(bottom: 20.0),
                         padding:
                             EdgeInsets.symmetric(vertical: 8.0, horizontal: 94.0),
-                        transform: Matrix4.rotationZ(-8 * pi / 180)
-                          ..translate(-10.0),
+                         transform: Matrix4.rotationZ(-8 * pi / 180)
+                           ..translate(-10.0),
                         // ..translate(-10.0),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(20),
@@ -113,6 +113,9 @@ class _AuthCardState extends State<AuthCard> {
     });
     if (_authMode == AuthMode.Login) {
       // Log user in
+      await Provider.of<Auth>(context, listen: false)
+          .signIn(_authData['email'], _authData['password'],);
+
     } else {
       // Sign user up
       await Provider.of<Auth>(context, listen: false)
