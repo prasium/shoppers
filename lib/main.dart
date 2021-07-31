@@ -5,6 +5,8 @@ import 'package:shoppers/providers/orders.dart';
 import 'package:shoppers/screens/auth_screen.dart';
 import 'package:shoppers/screens/edit_product.dart';
 import 'package:shoppers/screens/product_detail.dart';
+import 'package:shoppers/screens/products_overview.dart';
+import 'package:shoppers/screens/splash_screen.dart';
 import 'package:shoppers/screens/user_products.dart';
 
 import './providers/cart.dart';
@@ -23,36 +25,44 @@ class MyApp extends StatelessWidget {
     // listen to change in child widgets which are listening
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider.value(
-            value: Auth()
-        ),
-        ChangeNotifierProvider(
+        ChangeNotifierProvider.value(value: Auth()),
+        ChangeNotifierProxyProvider<Auth, ProductsProvider>(
           // builder should return new instance of provided  class
-          create: (ctx) => ProductsProvider(),
+          update: (ctx, auth, previousProducts) => ProductsProvider(auth.token,
+              auth.userId,
+              previousProducts == null ? [] : previousProducts.items),
+          create: (ctx) => ProductsProvider(null,null, []),
         ),
         ChangeNotifierProvider(
-            create: (ctx) => Cart(),
+          create: (ctx) => Cart(),
         ),
-        ChangeNotifierProvider(
-            create: (ctx) => Orders(),
+        ChangeNotifierProxyProvider<Auth, Orders>(
+          update: (ctx, auth,previousOrders)=> Orders(auth.token,auth.userId, previousOrders==null?[]:previousOrders.orders),
+          create: (ctx) => Orders(null,null,[]),
         ),
       ],
-      child: MaterialApp(
-        debugShowCheckedModeBanner: false,
-        title: "Shoppers",
-        theme: ThemeData(
-          primarySwatch: Colors.teal,
-          accentColor: Colors.redAccent,
-          fontFamily: 'Lato',
+      child: Consumer<Auth>(
+        builder: (ctx, authData, _) => MaterialApp(
+          debugShowCheckedModeBanner: false,
+          title: "Shoppers",
+          theme: ThemeData(
+            primarySwatch: Colors.teal,
+            accentColor: Colors.redAccent,
+            fontFamily: 'Lato',
+          ),
+          home: authData.isAuth ? ProductsOverview() : FutureBuilder(
+              future: authData.tryAutoLogin(),
+              builder: (ctx, authResultSnapshot)=> authResultSnapshot.connectionState==ConnectionState.waiting?
+              SplashScreen(): AuthScreen(),
+          ),
+          routes: {
+            ProductDetail.routeName: (ctx) => ProductDetail(),
+            CartScreen.routeName: (ctx) => CartScreen(),
+            OrdersScreen.routeName: (ctx) => OrdersScreen(),
+            UserProductsScreen.routeName: (ctx) => UserProductsScreen(),
+            EditProduct.routeName: (ctx) => EditProduct(),
+          },
         ),
-        home: AuthScreen(),
-        routes: {
-          ProductDetail.routeName: (ctx) => ProductDetail(),
-          CartScreen.routeName: (ctx) => CartScreen(),
-          OrdersScreen.routeName: (ctx) => OrdersScreen(),
-          UserProductsScreen.routeName: (ctx)=>UserProductsScreen(),
-          EditProduct.routeName: (ctx) => EditProduct(),
-        },
       ),
     );
   }

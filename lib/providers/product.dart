@@ -24,18 +24,19 @@ class Product with ChangeNotifier {
       notifyListeners();
   }
 
-  void toggleFavouriteState() async {
+  void toggleFavouriteState(String token, String userId) async {
     final oldStatus = isFavorite;
     isFavorite = !isFavorite;
     notifyListeners();
+    print(isFavorite);
     final url = Uri.parse(
-        'https://shoppers-c54d9-default-rtdb.firebaseio.com/products/$id.json');
+        'https://shoppers-c54d9-default-rtdb.firebaseio.com/userFavorites/$userId/$id.json?auth=$token');
     try {
-      final response = await http.patch(
+      final response = await http.put(
         url,
-        body: json.encode({
-          'isFavorite': isFavorite,
-        }),
+        body: json.encode(
+           isFavorite,
+        ),
       );
       if(response.statusCode>=400)
         {

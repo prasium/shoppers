@@ -6,16 +6,16 @@ import '../providers/products_provider.dart';
 import '../widgets/user_product_item.dart';
 
 class UserProductsScreen extends StatelessWidget {
-
   static const routeName = '/user-products';
 
-  Future<void> _refreshProducts(BuildContext  context) async{
-   await Provider.of<ProductsProvider>(context, listen: false).fetchAndSetProducts();
+  Future<void> _refreshProducts(BuildContext context) async {
+    await Provider.of<ProductsProvider>(context, listen: false)
+        .fetchAndSetProducts(true);
   }
 
   @override
   Widget build(BuildContext context) {
-    final productsData = Provider.of<ProductsProvider>(context);
+  //  final productsData = Provider.of<ProductsProvider>(context);
 
     return Scaffold(
       drawer: AppDrawer(),
@@ -30,24 +30,32 @@ class UserProductsScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: RefreshIndicator(
-        onRefresh: ()=>_refreshProducts(context),
-        child: Padding(
-          padding: EdgeInsets.all(10),
-          child: ListView.builder(
-              itemCount: productsData.items.length,
-              itemBuilder: (_, i) {
-                return Column(
-                  children: [
-                    UserProductItem(
-                        productsData.items[i].id,
-                        productsData.items[i].title,
-                        productsData.items[i].imageUrl),
-                 Divider(),
-                  ],
-                );
-              }),
-        ),
+      body: FutureBuilder(
+        future: _refreshProducts(context),
+        builder: (ctx, snapshot) =>
+            snapshot.connectionState == ConnectionState.waiting
+                ? Center(child: CircularProgressIndicator())
+                : RefreshIndicator(
+                    onRefresh: () => _refreshProducts(context),
+                    child: Consumer<ProductsProvider>(
+                      builder: (ctx,productsData,_)=>Padding(
+                        padding: EdgeInsets.all(10),
+                        child: ListView.builder(
+                            itemCount: productsData.items.length,
+                            itemBuilder: (_, i) {
+                              return Column(
+                                children: [
+                                  UserProductItem(
+                                      productsData.items[i].id,
+                                      productsData.items[i].title,
+                                      productsData.items[i].imageUrl),
+                                  Divider(),
+                                ],
+                              );
+                            }),
+                      ),
+                    ),
+                  ),
       ),
     );
   }
