@@ -17,71 +17,71 @@ class AuthScreen extends StatelessWidget {
     // final transformConfig = Matrix4.rotationZ(-8 * pi / 180);
     // transformConfig.translate(-10.0);
     return Scaffold(
-        // resizeToAvoidBottomInset: false,
-        body: Stack(
-          children: <Widget>[
-            Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    Colors.purple.withOpacity(0.5),
-                    Colors.teal.withOpacity(0.9),
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  stops: [0, 1],
-                ),
+      // resizeToAvoidBottomInset: false,
+      body: Stack(
+        children: <Widget>[
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Colors.purple.withOpacity(0.5),
+                  Colors.teal.withOpacity(0.9),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                stops: [0, 1],
               ),
             ),
-            SingleChildScrollView(
-              child: Container(
-                height: deviceSize.height,
-                width: deviceSize.width,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: <Widget>[
-                    Flexible(
-                      child: Container(
-                        margin: EdgeInsets.only(bottom: 20.0),
-                        padding:
-                            EdgeInsets.symmetric(vertical: 8.0, horizontal: 94.0),
-                         transform: Matrix4.rotationZ(-8 * pi / 180)
-                           ..translate(-10.0),
-                        // ..translate(-10.0),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
-                          color: Colors.black,
-                          boxShadow: [
-                            BoxShadow(
-                              blurRadius: 8,
-                              color: Colors.black26,
-                              offset: Offset(0, 2),
-                            )
-                          ],
-                        ),
-                        child: Text(
-                          'Shopify',
-                          style: TextStyle(
-                            color: Colors.yellow.shade500,
-                            fontSize: 50,
-                            fontFamily: 'Anton',
-                            fontWeight: FontWeight.normal,
-                          ),
+          ),
+          SingleChildScrollView(
+            child: Container(
+              height: deviceSize.height,
+              width: deviceSize.width,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: <Widget>[
+                  Flexible(
+                    child: Container(
+                      margin: EdgeInsets.only(bottom: 20.0),
+                      padding:
+                          EdgeInsets.symmetric(vertical: 8.0, horizontal: 94.0),
+                      transform: Matrix4.rotationZ(-8 * pi / 180)
+                        ..translate(-10.0),
+                      // ..translate(-10.0),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        color: Colors.black,
+                        boxShadow: [
+                          BoxShadow(
+                            blurRadius: 8,
+                            color: Colors.black26,
+                            offset: Offset(0, 2),
+                          )
+                        ],
+                      ),
+                      child: Text(
+                        'Shopify',
+                        style: TextStyle(
+                          color: Colors.purple.shade200,
+                          fontSize: 50,
+                          fontFamily: 'Anton',
+                          fontWeight: FontWeight.normal,
                         ),
                       ),
                     ),
-                    Flexible(
-                      flex: deviceSize.width > 600 ? 2 : 1,
-                      child: AuthCard(),
-                    ),
-                  ],
-                ),
+                  ),
+                  Flexible(
+                    flex: deviceSize.width > 600 ? 2 : 1,
+                    child: AuthCard(),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
-      );
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -94,29 +94,68 @@ class AuthCard extends StatefulWidget {
   _AuthCardState createState() => _AuthCardState();
 }
 
-class _AuthCardState extends State<AuthCard> {
+class _AuthCardState extends State<AuthCard>
+    with SingleTickerProviderStateMixin {
   final GlobalKey<FormState> _formKey = GlobalKey();
   AuthMode _authMode = AuthMode.Login;
   Map<String, String> _authData = {
     'email': '',
     'password': '',
   };
+
   var _isLoading = false;
   final _passwordController = TextEditingController();
 
+  AnimationController _controller;
+  Animation<Size> _heightAnimation;
 
-  void _showErrorDialog(String message){
-    showDialog(context: context, builder: (ctx)=> AlertDialog(
-      title: Text("An Error Occurred"),
-      content: Text(message),
-      actions: [
-        TextButton(onPressed: (){
-          Navigator.of(context).pop();
-        },
-          child: Text("Okay"),
-        ),
-      ],
-    ),);
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: Duration(
+        milliseconds: 300,
+      ),
+    );
+
+    _heightAnimation = Tween<Size>(
+      begin: Size(double.infinity, 260),
+      end: Size(double.infinity, 320),
+    ).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: Curves.fastOutSlowIn,
+      ),
+    );
+    
+    _heightAnimation.addListener(() => setState((){}));
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+    _controller.dispose();
+  }
+
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text("An Error Occurred"),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: Text("Okay"),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _submit() async {
@@ -132,42 +171,32 @@ class _AuthCardState extends State<AuthCard> {
     try {
       if (_authMode == AuthMode.Login) {
         // Log user in
-        await Provider.of<Auth>(context, listen: false)
-            .signIn(
+        await Provider.of<Auth>(context, listen: false).signIn(
           _authData['email'],
           _authData['password'],
         );
       } else {
         // Sign user up
-        await Provider.of<Auth>(context, listen: false)
-            .signUp(
+        await Provider.of<Auth>(context, listen: false).signUp(
           _authData['email'],
           _authData['password'],
         );
       }
-    } on HttpException catch(error)
-    {
+    } on HttpException catch (error) {
       var errorMessage = "Authentication failed";
-      if(error.toString().contains("EMAIL_EXISTS")){
+      if (error.toString().contains("EMAIL_EXISTS")) {
         errorMessage = "This email already exists";
-      }
-      else if(error.toString().contains("INVALID_EMAIL")){
+      } else if (error.toString().contains("INVALID_EMAIL")) {
         errorMessage = "This is an invalid email address";
+      } else if (error.toString().contains("WEAK_PASSWORD")) {
+        errorMessage = "The Password is too weak";
+      } else if (error.toString().contains("EMAIL_NOT_FOUND")) {
+        errorMessage = "Could not find a user with that email";
+      } else if (error.toString().contains("INVALID_PASSWORD")) {
+        errorMessage = "Invalid Password";
       }
-      else if(error.toString().contains("WEAK_PASSWORD"))
-        {
-          errorMessage = "The Password is too weak";
-        }
-      else if(error.toString().contains("EMAIL_NOT_FOUND"))
-        {
-          errorMessage = "Could not find a user with that email";
-        }
-      else if(error.toString().contains("INVALID_PASSWORD"))
-        {
-          errorMessage = "Invalid Password";
-        }
       _showErrorDialog(errorMessage);
-    }catch(error){
+    } catch (error) {
       print(error);
       var errorMessage = "Couldn't authenticate you, Try Again Later.";
       _showErrorDialog(errorMessage);
@@ -175,8 +204,6 @@ class _AuthCardState extends State<AuthCard> {
     setState(() {
       _isLoading = false;
     });
-
-
   }
 
   void _switchAuthMode() {
@@ -184,10 +211,12 @@ class _AuthCardState extends State<AuthCard> {
       setState(() {
         _authMode = AuthMode.Signup;
       });
+      _controller.forward();
     } else {
       setState(() {
         _authMode = AuthMode.Login;
       });
+      _controller.reverse();
     }
   }
 
@@ -200,9 +229,10 @@ class _AuthCardState extends State<AuthCard> {
       ),
       elevation: 8.0,
       child: Container(
-        height: _authMode == AuthMode.Signup ? 320 : 260,
+       // height: _authMode == AuthMode.Signup ? 320 : 260,
+        height: _heightAnimation.value.height,
         constraints:
-            BoxConstraints(minHeight: _authMode == AuthMode.Signup ? 320 : 260),
+            BoxConstraints(minHeight: _heightAnimation.value.height),
         width: deviceSize.width * 0.75,
         padding: EdgeInsets.all(16.0),
         child: Form(
@@ -293,7 +323,7 @@ class _AuthCardState extends State<AuthCard> {
                     padding: MaterialStateProperty.all(
                       EdgeInsets.symmetric(horizontal: 30.0, vertical: 4),
                     ),
-                    tapTargetSize:  MaterialTapTargetSize.shrinkWrap,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
                 ),
               ],
