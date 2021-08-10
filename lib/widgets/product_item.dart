@@ -25,7 +25,13 @@ class ProductItem extends StatelessWidget {
             Navigator.of(context)
                 .pushNamed('/product-detail', arguments: product.id);
           },
-          child: Image.network(product.imageUrl, fit: BoxFit.contain),
+          child: Hero(
+            tag: product.id,
+            child: FadeInImage(
+              placeholder: AssetImage('assets/images/product-placeholder.png'),
+            image: NetworkImage(product.imageUrl),
+            fit: BoxFit.contain,),
+          ),
         ),
         footer: GridTileBar(
           leading: Consumer<Product>(
@@ -34,10 +40,7 @@ class ProductItem extends StatelessWidget {
                 product.isFavorite ? Icons.favorite : Icons.favorite_border,
               ),
               onPressed: () {
-                product.toggleFavouriteState(
-                    auth.token,
-                    auth.userId
-                );
+                product.toggleFavouriteState(auth.token, auth.userId);
               },
               color: Theme.of(context).accentColor,
             ),
@@ -54,8 +57,8 @@ class ProductItem extends StatelessWidget {
                   ),
                   duration: Duration(seconds: 3),
                   action: SnackBarAction(
-                    onPressed: (){
-                          cart.removeSingleItem(product.id);
+                    onPressed: () {
+                      cart.removeSingleItem(product.id);
                     },
                     label: 'UNDO',
                   ),
